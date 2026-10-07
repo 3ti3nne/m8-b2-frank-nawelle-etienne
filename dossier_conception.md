@@ -1,6 +1,6 @@
-# Fiche de décision — <votre cas> (À COMPLÉTER)
+# Fiche de décision — Cabinet Maître Devalle
 
-**Client :** <nom, rôle> · **Groupe :** <prénoms> · **Cas <A/C/D>**
+**Client :** Maître Élise Devalle, cabinet d'avocats Devalle (12 avocats, Bordeaux) · **Groupe :** Etienne Roubaud, Franck Walter, Nawelle Polin · **Cas A**
 
 > **Livrable principal — 3-4 pages au maximum** (un plafond, pas une cible).
 > Lisible par un architecte technique. Renommez en `dossier_conception.md`.
