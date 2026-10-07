@@ -106,9 +106,37 @@ flowchart LR
 
 ## 4. Évaluation
 
-<!-- Comment on saura que ça marche AVANT la mise en service :
-     baseline simple à battre, découpage des données (temporel si le temps compte),
-     métriques alignées sur le KPI métier du cadrage. -->
+**Ce qu'on compare** (même index, même jeu de test) :
+
+| | Système | Rôle |
+|---|---|---|
+| **Référence actuelle** | Nom de fichier ou « demander au collègue » | Point de départ du KPI : environ 30 min par recherche |
+| **Baseline à battre** | **Mots-clés seuls** (plein texte PostgreSQL) + filtres du registre | La solution la plus légère : sans aucun modèle d'IA |
+| **Candidat** | **Recherche hybride** (mots-clés + sens, fusion RRF) | La solution retenue au §1 |
+
+**Jeu de test** : 30 recherches réelles, collectées par les assistantes pendant la semaine de mesure. Chacune est notée **telle que l'avocat l'a tapée**, avec la ou les décisions attendues (**leur numéro au registre**), validées par l'avocat. Les questions sont anonymisées (§1).
+- **Composition** : environ 15 en recouvrement et environ 15 en baux commerciaux ; au moins **10 visant des scans anciens** (pour tester l'OCR) ; au moins **10 formulées sans les mots exacts de la décision** (« expulsion » pour « résiliation du bail »), là où l'hybride doit faire la différence.
+- **Découpage** : rien n'est entraîné, mais on règle des paramètres (taille des passages, poids de la fusion). On utilise **10 recherches pour le réglage** et on garde **20 recherches jamais vues** pour la mesure finale, pour ne pas se mesurer sur ce qu'on a ajusté.
+- **Axe temporel** : les 20 recherches de mesure portent sur des décisions réparties sur les 15 ans d'archive. On vérifie que les décisions anciennes, scannées, ne sont pas systématiquement ratées.
+
+**Métriques, alignées sur le KPI du §1 (« décision dans les 5 premiers résultats, en 30 s »)** :
+
+| Métrique | Ce qu'elle dit au cabinet | Seuil de mise en service |
+|---|---|---|
+| **Rappel@5** : part des recherches où une décision attendue est dans le top 5 | « Je trouve ma décision sans chercher plus loin » | **≥ 80 %** sur les 20 recherches de mesure |
+| Rappel@5 par sous-groupe (scans anciens, formulations différentes) | Où l'outil rate | Aucun sous-groupe **< 60 %** |
+| **Temps pour trouver**, chronométré avec 3 utilisateurs | Le KPI métier | Médiane **≤ 30 s** ; tolérance : quelques minutes |
+| Résultats sans document original (lien cassé ou texte généré) | Zéro invention (Q7) | **0** |
+| Décisions de droit de la famille dans les résultats | Exclusion demandée (Q1) | **0** |
+| **Décisions consultables** : décisions lisibles et indexées ÷ décisions inscrites au registre | L'outil couvre bien l'archive (OCR) | **≥ 90 %** ; les autres vont sur la liste à re-numériser |
+
+**Règle de décision** :
+- **Hybride ≥ baseline + 10 points de Rappel@5** → on garde l'hybride.
+- **Moins de 10 points d'écart** → on **revient aux mots-clés seuls**, plus simples à maintenir sans prestataire.
+- **Rappel@5 < 80 % pour les deux** → modèle d'embeddings spécialisé en droit français (arbitrage 5), ou reranker si la bonne décision est dans le top 10 mais pas dans le top 5 (§3).
+- **L'outil n'ouvre que si tous les seuils sont atteints.** Le même jeu de test est **rejoué à chaque changement** (nouveau modèle, autre découpage des passages) : si le score baisse, **retour à la version précédente** (§5).
+
+**Courriers** : on refait **10 courriers récents** avec les nouveaux modèles Word et on les compare à l'ancienne méthode (copier-coller). Mesures : temps par courrier, **0 erreur de montant ou de délai** après relecture de l'avocat.
 
 ## 5. Déploiement et monitoring (héritage M5 / M6)
 
