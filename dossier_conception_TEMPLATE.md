@@ -228,8 +228,8 @@ fonction rechercher(requete, utilisateur, filtres_registre):
 
 | # | Question probable | Réponse préparée (2-3 lignes) | Qui répond |
 | --- | --- | --- | --- |
-| 1 |  |  |  |
-| 2 |  |  |  |
-| 3 |  |  |  |
-| 4 |  |  |  |
-| 5 |  |  |  |
+| 1 | C'est pas un peu simple ? Pourquoi pas une IA qui répond directement, type ChatGPT branché sur vos décisions (RAG) ? | Le cabinet veut retrouver une décision existante, pas un texte rédigé, et tolère **zéro invention** (Q7). Un LLM hébergé en France coûterait **300 à 1 500 €/mois** de GPU, hors budget. On changerait d'avis si les avocats demandaient des synthèses **et** que le top 5 atteignait déjà 80 % : RAG avec citation obligatoire et relecture. | Franck |
+| 2 | RAG non, mais vous calculez des embeddings et stockez des vecteurs : c'est une base vectorielle déguisée ? | On garde la moitié « retrouver » du RAG, sans la moitié « rédiger » : rien n'est généré. Les vecteurs (**≈ 40 000 passages, ≈ 60 Mo**) sont une colonne de plus dans la base PostgreSQL nécessaire de toute façon (pgvector), pas un logiciel de plus : sans prestataire après le 31/12, chaque logiciel en moins est une panne en moins. | Étienne |
+| 3 | Et si l'outil ne trouve pas la décision ? | L'erreur possible est un **oubli, jamais une invention** : chaque résultat est un vrai fichier que l'avocat lit. Avant l'ouverture, bonne décision dans le top 5 pour **≥ 80 %** des recherches de test et **+10 points** sur les mots-clés seuls, sinon on garde les mots-clés (§4). En service, sous 80 % sur un mois : alerte à la référente et test d'un modèle spécialisé en droit (§5). | Nawelle |
+| 4 | Mon prestataire part le 31/12 et mes dossiers sont sous secret : qui s'occupe de l'outil, et qui voit mes décisions ? | Rien ne tourne au cabinet : copie chiffrée **avant le 31/12** chez un hébergeur français sous contrat, qui assure mises à jour, sauvegardes et surveillance ; les accès du prestataire sont révoqués. Seuls les comptes du cabinet y accèdent (double authentification, VPN) et aucune donnée ne part vers une IA externe. Reste un utilisateur autorisé qui copierait peu à peu : journal et alerte à la référente. | Étienne |
+| 5 | Vous n'avez pas anonymisé les décisions : et le RGPD ? | Anonymiser 2 000 décisions coûterait trop cher, et l'avocat cherche aussi par nom de partie. Le cabinet réutilise sa propre production pour défendre ses clients (**intérêt légitime**, finalité compatible, AIPD recommandée, §6). La minimisation est dans l'architecture : **droit de la famille exclu**, modèles et jeu de test anonymisés, hébergement français chiffré, accès journalisés. | Franck |
