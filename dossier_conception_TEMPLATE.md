@@ -140,15 +140,15 @@ flowchart LR
 
 ## 5. Déploiement et monitoring (héritage M5 / M6)
 
-<!-- Où et comment ça tourne, rollback. Puis : -->
+**Où ça tourne** : une VM CPU chez l'hébergeur français, trois conteneurs via docker-compose (base, application, tâche de nuit). Par **contrat d'infogérance**, l'hébergeur assure mises à jour, sauvegarde quotidienne et surveillance (imprévu du 31/12) ; les alertes partent par e-mail. **Retour arrière** : versions étiquetées ; une nouvelle ne passe qu'après le rejeu du jeu de test (§4), sinon on redéploie la précédente (runbook).
 
 | Question | Métrique | Seuil | Alerte vers |
 | --- | --- | --- | --- |
-| En vie ? |  |  |  |
-| Prédit bien ? |  |  |  |
-| Données qui dérivent ? |  |  |  |
+| En vie ? | Healthcheck + temps de réponse | Panne > 5 min ou réponse > 2 s | Hébergeur, copie à la référente |
+| Trouve bien ? | Part des recherches où un des 5 résultats est ouvert (agrégée, jamais par personne) | < 80 % sur le mois | Référente + Maître Devalle |
+| Données qui dérivent ? | Décisions du registre non indexées (illisibles ou en erreur) | > 10 % des dépôts du mois | Assistante du registre |
 
-<!-- Quand réentraîner, et qui décide. -->
+**Réentraînement** : aucun, le modèle est figé et seul l'index grandit chaque nuit. On surveille la dérive sur les dépôts et les recherches. Si « Trouve bien ? » passe sous 80 %, on teste un modèle spécialisé en droit (§2) sur le jeu de test, adopté seulement s'il fait mieux (promotion conditionnelle) ; la référente et Maître Devalle décident.
 
 ## 6. Conformité et sécurité
 
