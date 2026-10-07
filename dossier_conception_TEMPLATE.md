@@ -188,9 +188,41 @@ flowchart LR
 
 <!-- ressources/fiche_chiffrage.md — à recalculer, pas à recopier. -->
 
-| Poste | Estimation | Hypothèse |
-| --- | --- | --- |
-|  |  |  |
+### Coûts initiaux
+
+| Poste de dépense | Estimation du volume | Estimation du prix | Total |
+| --- | --- | --- | --- |
+| Développement et déploiement | 12 à 16 jours : recherche hybride, interface, authentification et déploiement | 500 €/jour | 6 000 à 8 000 € |
+| Reprise des données : transfert, nettoyage, OCR et indexation | 4 à 6 jours pour 2 000 décisions et le registre | 500 €/jour | 2 000 à 3 000 € |
+| Préparation et anonymisation des modèles Word | 2 à 3 jours ; nombre de modèles à confirmer | 500 €/jour | 1 000 à 1 500 € |
+| Tests et formation des utilisateurs | 3 à 4 jours : 30 recherches de test, formation des 12 avocats et des assistantes | 500 €/jour | 1 500 à 2 000 € |
+| Étude et connexion au logiciel de gestion, si retenue | 1 jour d’étude ; connexion à chiffrer après retour de l’éditeur | 500 €/jour | 500 € pour l’étude ; connexion à chiffrer |
+| **Total hors option logiciel de gestion** | **21 à 29 jours** | **500 €/jour** | **10 500 à 14 500 €** |
+
+Estimations de charge à confirmer : aucun document examiné, proportion de scans et nombre de modèles inconnus dans le cadrage M8-B1. Budget initial annoncé : 15 000 € ; avec l’étude du logiciel de gestion : 11 000 à 15 000 €, hors réalisation de la connexion. Validation métier des modèles et des résultats à prévoir par le cabinet.
+
+### Coûts récurrents
+
+| Poste de dépense | Estimation du volume | Estimation du prix | Total mensuel |
+| --- | --- | --- | --- |
+| Hébergement en France | 1 VM CPU, 100 Go inclus ; 220 recherches/mois et 11 nouvelles décisions/mois | Provision de 20 €/mois | 20 € |
+| Stockage et sauvegardes | 10 Go d’originaux (2 000 × 5 Mo, hypothèse), provision de 50 Go pour les copies et leur rétention | Provision de 10 €/mois pour les sauvegardes complémentaires | 10 € |
+| Maintenance, surveillance et support | 0,25 à 0,5 jour/mois : mises à jour, alertes, corrections et tests de restauration | 500 €/jour | 130 à 250 € |
+| Suivi par la référente du cabinet | 1 à 2 heures/mois | Valorisation indicative arrondie à 60 €/h (500 €/jour, 8 h/jour) | 60 à 130 € de temps interne |
+| Licence API du logiciel de gestion, si nécessaire | 1 accès, si la connexion est retenue | Tarif de l’éditeur à obtenir | À chiffrer |
+| **Total des dépenses externes hors API** | | | **160 à 280 €/mois** |
+| **Total avec valorisation du temps interne, hors API** | | | **220 à 410 €/mois** |
+
+Ces coûts récurrents, hors licence API éventuelle, rentrent dans le budget annoncé de quelques centaines d’euros par mois.
+
+### Récapitulatif
+
+| Coût | Estimation hors connexion et licence API |
+| --- | --- |
+| Initial | 10 500 à 14 500 € |
+| Étude du logiciel de gestion (option) | 500 € |
+| Mensuel externe | 160 à 280 € |
+| Mensuel avec temps interne | 220 à 410 € |
 
 ---
 
