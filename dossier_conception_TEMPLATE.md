@@ -41,12 +41,68 @@
 
 ```mermaid
 flowchart LR
-    A[Source] --> B[Traitement] --> C[Modèle] --> D[Sortie / humain]
+    subgraph SRC["Cabinet"]
+        SRV[("Serveur du cabinet<br/>~2 000 décisions + registre")]
+        ASS("Assistante du registre<br/>seule à déposer")
+    end
+    LGC[("Logiciel de gestion<br/>hébergé en France")]
+
+    subgraph HEB["Hébergeur français sous contrat : VM CPU, chiffré, sauvegardé"]
+        ORI[("1. Originaux<br/>+ registre")]
+        ING(["2. Ingestion batch (cron)<br/>OCR, passages,<br/>embeddings pré-entraînés"])
+        BDD[("3. PostgreSQL<br/>plein texte + pgvector<br/>+ filtres du registre")]
+        RECH["4. Recherche hybride<br/>fusion RRF mots + sens<br/>top 5 + extrait + lien<br/>aucun texte généré"]
+        LOG[("6. Journal + métriques<br/>alertes à la référente")]
+        MOD[("5. Modèles Word<br/>anonymisés, sans IA")]
+    end
+
+    LECT{"Avocat ou assistante<br/>double authentification<br/>lit l'original : utile ?"}
+    USE[/"Utilisée<br/>dans le dossier"/]
+    COUR("Assistante<br/>remplit le modèle")
+    SIG{"L'avocat relit<br/>et signe ?"}
+    ENV[/"Envoi : 100 %<br/>des courriers signés"/]
+
+    SRV -->|"copie unique avant le 31/12,<br/>puis accès prestataire coupés"| ORI
+    ASS -->|"nouvelle décision"| ORI
+    ORI --> ING --> BDD --> RECH
+    RECH -->|"top 5"| LECT
+    LECT -.->|"non : nouvelle requête"| RECH
+    LECT -->|oui| USE
+    RECH -.-> LOG
+
+    LGC -.->|"pré-remplissage :<br/>faisabilité à l'étude"| MOD
+    MOD --> COUR --> SIG
+    SIG -.->|"non : correction"| COUR
+    SIG -->|oui| ENV
+
+    classDef data fill:#e5e7eb,stroke:#6b7280,color:#111
+    classDef code fill:#ffffff,stroke:#6b7280,color:#111
+    classDef ml fill:#bfdbfe,stroke:#1d4ed8,color:#111
+    classDef dec fill:#fef08a,stroke:#a16207,color:#111
+    classDef hum fill:#bbf7d0,stroke:#15803d,color:#111
+    classDef out fill:#e9d5ff,stroke:#7e22ce,color:#111
+    class SRV,LGC,ORI,BDD,LOG,MOD data
+    class RECH code
+    class ING ml
+    class LECT,SIG dec
+    class ASS,COUR hum
+    class USE,ENV out
 ```
 
-<!-- Chaque brique découle d'un arbitrage. Commentez en 3-4 lignes. -->
+- **Hébergeur, 1 et 6** : imprévu de mardi (prestataire parti le 31/12) : rien ne tourne au cabinet, copie des décisions avant son départ, journal suivi par l'hébergeur avec alertes à la référente du cabinet.
+- **2 et 3** : arbitrages 1 et 5 : embeddings pré-entraînés utilisés tels quels, sur CPU, sans entraînement ; texte, filtres et vecteurs dans une seule base (≈ 40 000 passages × 384 dimensions × 4 octets ≈ 60 Mo).
+- **4** : §1 (recherche hybride) et arbitrages 2 et 3 : on renvoie 5 décisions réelles avec le lien vers l'original, jamais un texte généré.
+- **5 et losanges** : §1 (courriers, anonymisation) et arbitrage 4 : modèles Word sans IA, chaque résultat lu et chaque courrier signé par un humain.
 
-**Ce qu'on n'a PAS mis (obligatoire)** : <!-- brique écartée + raison, ex. « pas de vector DB : RAG = non » -->
+**Ce qu'on n'a PAS mis (obligatoire)** :
+
+- **Pas de LLM, de SLM ni de RAG génératif** (arbitrages 2 et 3) : tolérance à l'invention de 0 ; un GPU coûterait 300 à 1 500 € par mois, hors budget.
+- **Pas de base vectorielle dédiée** : ≈ 60 Mo de vecteurs tiennent dans la base PostgreSQL déjà nécessaire (pgvector) ; sans prestataire après le 31/12, chaque logiciel en moins est une panne en moins.
+- **Pas d'agent** (arbitrage 4) : l'envoi d'un courrier est irréversible, il reste 100 % humain.
+- **Pas d'entraînement, de fine-tuning ni de registre de modèles (MLflow Registry)** (arbitrages 1 et 5) : un seul modèle, figé, aucune paire labellisée ; il ne change qu'après le jeu de test (§2).
+- **Pas de GPU ni d'orchestrateur (Kubernetes, Airflow)** : indexation complète une seule fois sur CPU (≈ 40 000 passages × 10-50 ms ≈ 7 à 35 min), puis ≈ 130 nouvelles décisions par an ajoutées par une tâche de nuit (cron).
+- **Pas de reclassement par un 2e modèle (reranker)** : un modèle de plus à héberger ; à ajouter seulement si le jeu de test montre la bonne décision dans le top 10 mais hors du top 5.
+- **Pas d'installation au cabinet ni de cloud américain** : plus personne pour l'entretenir après le 31/12 ; dossiers sous secret, exigence du client (Cloud Act).
 
 ## 4. Évaluation
 
