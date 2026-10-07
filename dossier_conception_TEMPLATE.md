@@ -49,7 +49,7 @@ flowchart LR
 
     subgraph HEB["Hébergeur français sous contrat : VM CPU, chiffré, sauvegardé"]
         ORI[("1. Originaux<br/>+ registre")]
-        ING(["2. Ingestion batch (cron)<br/>OCR, passages,<br/>embeddings pré-entraînés"])
+        ING(["2. Ingestion batch (cron)<br/>exclusion matière famille,<br/>OCR, passages,<br/>embeddings pré-entraînés"])
         BDD[("3. PostgreSQL<br/>plein texte + pgvector<br/>+ filtres du registre")]
         RECH["4. Recherche hybride<br/>fusion RRF mots + sens<br/>top 5 + extrait + lien<br/>aucun texte généré"]
         LOG[("6. Journal + métriques<br/>alertes à la référente")]
@@ -90,7 +90,7 @@ flowchart LR
 ```
 
 - **Hébergeur, 1 et 6** : imprévu de mardi (prestataire parti le 31/12) : rien ne tourne au cabinet, copie des décisions avant son départ, journal suivi par l'hébergeur avec alertes à la référente du cabinet.
-- **2 et 3** : arbitrages 1 et 5 : embeddings pré-entraînés utilisés tels quels, sur CPU, sans entraînement ; texte, filtres et vecteurs dans une seule base (≈ 40 000 passages × 384 dimensions × 4 octets ≈ 60 Mo).
+- **2 et 3** : exclusion du droit de la famille dès l'ingestion (Q1, 25 % de l'extrait du registre) ; arbitrages 1 et 5 : embeddings pré-entraînés utilisés tels quels, sur CPU, sans entraînement ; texte, filtres et vecteurs dans une seule base (≈ 40 000 passages × 384 dimensions × 4 octets ≈ 60 Mo).
 - **4** : §1 (recherche hybride) et arbitrages 2 et 3 : on renvoie 5 décisions réelles avec le lien vers l'original, jamais un texte généré.
 - **5 et losanges** : §1 (courriers, anonymisation) et arbitrage 4 : modèles Word sans IA, chaque résultat lu et chaque courrier signé par un humain.
 
@@ -152,9 +152,37 @@ flowchart LR
 
 ## 6. Conformité et sécurité
 
-<!-- Qualification AI Act et base légale RGPD reprises des cadrages (raisonnement,
-     pas étiquette), en tenant compte de l'imprévu client de mardi 14h30.
-     Chaque menace de sécurité retenue → sa réponse d'architecture + le risque résiduel. -->
+**Usage réel** : un avocat ou une assistante tape une recherche. L'outil **classe** 5 décisions réelles du cabinet et affiche le lien vers l'original. L'humain lit et décide seul. Pour les courriers, l'assistante remplit un modèle Word et l'avocat relit et signe. L'outil **ne décide rien et ne rédige rien**.
+
+**AI Act : pas de haut risque, aucune obligation spécifique** hormis la maîtrise de l'IA par les équipes (art. 4 : une courte formation sur « ce que fait et ne fait pas la recherche par le sens »). Les embeddings classent des résultats, donc l'outil est probablement un *système d'IA* au sens de l'art. 3. Le cabinet en est le **déployeur**.
+- **Annexe III 8 a non applicable** : elle vise l'IA utilisée *par une autorité judiciaire* ou en son nom, et un cabinet d'avocats n'en est pas une.
+- **Art. 50 non applicable** : pas de chatbot, aucun contenu généré.
+- **Bascule** :
+  1. les statistiques de recherche ou le champ « issue » servent à **évaluer les avocats** → Annexe III 4 b, haut risque. C'est pour ça que le monitoring est **agrégé, jamais par personne** (§5) ;
+  2. l'outil **prédit l'issue d'un litige** ;
+  3. on ajoute de la **génération** (RAG) → art. 50 et nouvelle analyse.
+
+**RGPD** : le cabinet est **responsable de traitement**. L'hébergeur, qui assure aussi l'infogérance et a donc accès aux données, est **sous-traitant** : il signe un contrat art. 28 et fournit des garanties de non-soumission à un droit extra-européen (exigence Q10 ; idéalement une offre qualifiée SecNumCloud).
+- **Base légale : intérêt légitime (art. 6.1.f)**, à savoir réutiliser sa propre production pour mieux défendre ses clients. Le **consentement** est écarté (impossible auprès des parties adverses), tout comme le **contrat** (les adversaires ne sont pas clients). La mise en balance et la **compatibilité avec la finalité d'origine** (art. 6.4) sont documentées : données déjà détenues légalement, usage interne, secret professionnel.
+- **Minimisation, inscrite dans l'architecture** : droit de la famille **exclu à l'ingestion** (Q1), modèles Word et jeu de test **anonymisés** (§1), monitoring agrégé.
+- **Information des personnes** : exception de l'art. 14.5 d (secret professionnel).
+- **Profilage** : non. **Art. 22** : non applicable, aucune décision n'est exclusivement automatisée.
+- **AIPD recommandée** : 15 ans de dossiers sous secret professionnel, des situations financières de débiteurs, et un nouvel hébergement.
+
+**Sécurité** — exposition : une application web chez l'hébergeur, accessible aux 12 avocats et aux assistantes, sans API publique, sans LLM et sans réentraînement.
+
+| Menace | Plausibilité sur CE cas | Réponse d'architecture | Risque résiduel |
+| --- | --- | --- | --- |
+| **Exfiltration** via le moteur (extraction massive de décisions) | 🟠 15 ans de dossiers confidentiels réunis en un point de recherche | Comptes nominatifs + **double authentification**, limite d'ouvertures et d'exports, alerte sur volume anormal (journal §5) | Un utilisateur autorisé et mal intentionné |
+| **Compte compromis** (hameçonnage), application exposée sur Internet | 🟠 Petit cabinet, aucun informaticien en interne | Double authentification, accès réservé à l'IP du cabinet ou à un VPN, mises à jour par l'infogérance | Hameçonnage qui contourne la double authentification |
+| **Accès de l'ancien prestataire** après le 31/12 (imprévu) | 🟠 Il connaît le serveur et ses mots de passe | Copie chiffrée avant son départ, puis **révocation de tous ses accès** et changement des mots de passe | Un accès oublié : audit des comptes en janvier |
+| **Empoisonnement de l'index** (document piégé ou mal classé) | 🟡 Le serveur n'est plus administré | Dépôt **réservé à l'assistante du registre**, filtre de matière à l'ingestion | Erreur de classement non repérée |
+| **Modèle d'embeddings piégé** (téléchargement) | 🟡 Le modèle vient d'un dépôt public | Source reconnue, format *safetensors*, version figée et vérifiée (empreinte) | Faille inconnue dans le modèle |
+
+**Écartés en une ligne** :
+- **Prompt injection** : ⚪ sans objet, aucun LLM ne lit les documents. Elle deviendrait 🟠 avec un RAG, à cause des conclusions adverses indexées.
+- **Vol de modèle et adversarial** : ⚪ le modèle est public et ne contient rien du cabinet, et personne n'a intérêt à tromper le classement.
+- **Inversion des embeddings** : ⚪ le texte en clair est déjà dans la même base. C'est **la base** qu'on protège (chiffrement au repos, sauvegarde chiffrée).
 
 ## 7. Coûts (ordres de grandeur, sur VOTRE volumétrie)
 
