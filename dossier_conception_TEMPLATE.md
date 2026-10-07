@@ -196,10 +196,32 @@ flowchart LR
 
 ## ⭐ Optionnel — Pseudo-code du composant critique
 
+Composant critique : la **recherche hybride** (bloc 4 du §3).
+
 ```text
-fonction <nom>(<entrées>):
-    # 10-20 lignes : cas nominal, cas limite (donnée manquante, confiance basse…),
-    # ce qui est journalisé.
+fonction rechercher(requete, utilisateur, filtres_registre):
+    si non utilisateur.double_authentification_valide:
+        journal_securite("accès refusé", utilisateur) ; refuser
+    si utilisateur.ouvertures_du_jour > plafond:               # exfiltration (§6)
+        alerter(referente) ; bloquer
+
+    requete ← normaliser(tronquer(requete, 300 caractères))
+    par_mots ← index_plein_texte.chercher(requete, filtres_registre, 50)
+    par_sens ← index_vecteurs.plus_proches(embedding(requete), filtres_registre, 50)
+    passages ← fusion_RRF(par_mots, par_sens)                 # rangs fusionnés, pas de score inventé
+
+    decisions ← regrouper_par_decision(passages)               # plusieurs passages → 1 décision
+    garder seulement d où d.matiere ≠ "famille"                # garde-fou, déjà exclu à l'ingestion
+                         et utilisateur.peut_voir(d)
+                         et fichier_existe(d.lien_original)   # sinon journal "lien cassé"
+    top5 ← 5 premières decisions
+
+    si top5 est vide:
+        afficher "Aucune décision trouvée : essayez d'autres mots ou demandez à l'assistante du registre"
+    journal_securite(utilisateur, nb_resultats)                # accès restreint, conservation limitée
+    metriques_agregees(nb_resultats, temps_reponse)            # jamais par personne, jamais le texte de la requête
+    retourner top5 en (numéro registre, date, matière, extrait surligné, lien vers l'original)
+    # aucun texte généré : chaque ligne renvoie à un document réel
 ```
 
 ## Annexe — 5 questions prévues (hors pagination)
