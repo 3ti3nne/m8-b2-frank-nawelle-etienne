@@ -1,41 +1,24 @@
-# M8-B2 — Concevoir l'architecture cible (arbitrages explicites, groupe par client)
+# M8-B2 — Conception : Cabinet Maître Devalle (cas A)
 
-> **Repo template.** Groupe = les collègues staffés sur le **même client** en
-> M8-B1 (binôme ou trio). **Un seul** membre fait « Use this template » →
-> `M8-B2-conception-<cas>-<groupe>` et ajoute les autres en collaborateurs.
-> **Pas de code** (pseudo-code ⭐ optionnel), **pas de slides**. Tout se fait en
-> synchrone : **aucun asynchrone**.
+**Groupe** : Etienne Roubaud · Franck Walter · Nawelle Polin
+**Livrable principal** : [`dossier_conception.md`](dossier_conception.md), la fiche de décision (4 pages maximum).
 
-## 🗓️ Votre déroulé
+## Lire la fiche en 2 minutes
 
-| Quand | À faire | Où dans la fiche |
-|---|---|---|
-| **Mardi 15h30-15h50** | Lecture croisée des cadrages M8-B1 de chaque membre + création du repo de groupe | — |
-| **Mardi 15h50-16h05** | Lister les **3-5 divergences** entre vos cadrages | §1 |
-| **Mardi 16h05-16h45** | **Trancher** chaque divergence : positions, décision, pourquoi | §1 |
-| **Mercredi 9h15-10h00** | **5 arbitrages** : choix + raisons (≥ 1 chiffrée) + condition de changement d'avis, ou « non applicable » justifié | §2 |
-| **Mercredi 10h00-11h00** | Architecture finale (Mermaid) + ce qu'on n'a pas mis, évaluation, déploiement & monitoring, conformité & sécurité, coûts | §3 à §7 |
-| **Mercredi 11h00-11h15** | 5 questions probables + réponses, répartition de la parole, **commit final 11h15** | Annexe |
-| **Mercredi 11h15-11h55** | **Restitution** : 20 min par groupe (12 min d'oral sur le schéma final + 8 min de questions). Pas de slides, **chaque membre parle** | — |
+1. **Le besoin** : le cabinet perd environ 30 min à chaque fois qu'il cherche **ses propres décisions** (environ 10 fois par jour). Il recopie aussi ses courriers types à partir de vieux courriers.
+2. **Notre réponse** (§3, schéma) : un **moteur de recherche hybride** (mots-clés + sens) sur les ~2 000 décisions du cabinet, qui renvoie **5 décisions réelles avec le lien vers l'original**, et des **modèles Word** à jour pour les courriers.
+3. **Ce qu'on refuse** (§2, §3) : **ni LLM, ni RAG génératif, ni agent**. La cliente ne tolère aucune décision inventée, et le besoin est de *retrouver* un document, pas d'en *rédiger* un.
+4. **L'imprévu du 31/12** (§3, §5, §6) : sans prestataire informatique, rien ne tourne au cabinet. Les décisions sont copiées chez un hébergeur français infogéré avant son départ.
+5. **Comment on saura que ça marche** (§4) : 30 recherches réelles, avec une baseline par **mots-clés seuls**. L'hybride n'est gardé que s'il apporte au moins 10 points de plus ; la bonne décision doit être dans le top 5 pour au moins 80 % des recherches.
 
-## 🧭 Ce que vous produisez
+Pour aller plus vite : lire le **§1** (nos décisions de groupe), le **§2** (les 5 arbitrages) et le **schéma du §3**.
 
-| # | Livrable | Fichier |
-|---|---|---|
-| 1 | **Fiche de décision** (3-4 pages **maximum**) — livrable principal : décisions de groupe, 5 arbitrages, architecture finale, évaluation, déploiement & monitoring, conformité & sécurité, coûts, questions prévues en annexe | `dossier_conception_TEMPLATE.md` → `dossier_conception.md` |
-| 2 | README : qui a fait quoi + comment lire la fiche en 2 min | `README.md` |
+## Qui a fait quoi
 
-Tout est **dans la fiche** : pas de fichiers séparés à recopier.
+| Membre | Contributions |
+|---|---|
+| **Franck Walter** | §1 Décisions de groupe (divergences entre les 3 cadrages), §7 Coûts |
+| **Etienne Roubaud** | Création du repo, §3 Architecture finale (schéma Mermaid + ce qu'on n'a pas mis), §5 Déploiement et monitoring, annexe des 5 questions prévues |
+| **Nawelle Polin** | §2 Les 5 arbitrages, §4 Évaluation, §6 Conformité et sécurité, pseudo-code de la recherche hybride, README |
 
-## ✅ Réussite
-
-- Divergences **tranchées et argumentées** (négociation, pas union des cadrages).
-- 5 arbitrages **tranchés ou non applicables** (justifiés) — pas de GenAI forcée par la grille.
-- Archi **cohérente** avec les arbitrages (RAG non ⇒ pas de vector DB) et avec l'imprévu client de mardi.
-- **Sobriété visible** : justifier **ce qu'on n'a PAS mis**.
-- 5 questions **réalistes** préparées. À l'oral, chaque membre parle et le groupe tient sa décision.
-- Commits de **chaque** membre. **Journal de bord** tenu.
-
-## 📚 Ressources
-
-Voir [`./ressources/`](./ressources/) — 5 mini-cours + `fiche_chiffrage.md` + `liens_officiels.md`.
+Le §1 et le §2 ont été validés par les trois membres. Les commits rédigés par un membre portent les deux autres en `Co-authored-by`.
